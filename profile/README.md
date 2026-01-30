@@ -25,6 +25,8 @@ Our goal is to create a **unified, open, and modular platform** for quantitative
 | `trading-os-framework` | Shared libraries, utilities, and standards across all agents. |
 
 > Each repository is designed to be modular and can be developed or used independently.
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/7ed972cf-8510-49e1-bd36-705b468c8576" />
+
 
 ---
 
