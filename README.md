@@ -1,63 +1,130 @@
 # QuantTradingOS
 
-**QuantTradingOS** is a modular ecosystem of AI-powered trading agents, frameworks, and tools for systematic trading, market analysis, and portfolio management. This organization provides a collection of repositories that are structured to support research, execution strategies, risk management, and performance analysis.
+**QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and (eventually) a core engine for systematic trading. Today it is a collection of standalone and composable repositories; the vision is a coherent OS where intelligence, risk, and execution work together with clear boundaries.
+
+We are early-stage and transparent about what exists and what does not.
 
 ---
 
-## 🌟 Organization Vision
-Our goal is to create a **unified, open, and modular platform** for quantitative trading:
+## Project Status
 
-- Develop AI agents that assist in market regime detection, trade execution, sentiment analysis, and portfolio analytics.  
-- Maintain clear and reusable frameworks for trading strategies.  
-- Facilitate collaboration and knowledge sharing within the quantitative finance community.
+**Currently implemented**
 
----
+- **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
+- **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; the core engine that would enforce them is not yet built.
+- **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
 
-## 📦 Repository Structure
+**Not yet implemented (intentional)**
 
-| Repository | Purpose |
-|------------|---------|
-| `capital-allocation-agent` | Risk governor: position sizing, risk limits, trade gating. Consumes regime, portfolio, and discipline inputs. |
-| `capital-guardian-agent` | Pre-execution risk governor: drawdown, regime, and exposure controls. |
-| `execution-discipline-agent` | Automated evaluation of trade execution discipline. |
-| `market-regime-agent` | Market regime detection and classification. |
-| `portfolio-analyst-agent` | Portfolio performance and risk insights. |
-| `equity-insider-intelligence-agent` | Analysis of insider trading and market signals. |
-| `sentiment-shift-alert-agent` | Financial news sentiment monitoring. |
-| `trade-journal-coach-agent` | Trade journal analysis and coaching insights. |
-| `trading-os-framework` | Shared libraries, utilities, and standards across all agents. |
+- **Core trading engine** — The runtime that would orchestrate agents, strategies, and orders. No single "run the system" executable yet.
+- **Backtesting / simulation** — No shared backtesting framework. Agents are not yet wired into a simulated or historical execution path.
+- **Live execution & broker connectivity** — No order routing, no broker APIs. Nothing in this org places live trades.
 
-> Each repository is designed to be modular and can be developed or used independently.
-
-<img width="1024" height="1024" alt="QuantTradingOS Project Structure" src="https://github.com/user-attachments/assets/7ed972cf-8510-49e1-bd36-705b468c8576" />
+If you are looking for a turnkey autotrading or backtesting product, it does not exist here yet. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
 
 ---
 
-## 🚀 Getting Started
-1. Choose the repository you want to explore.  
-2. Clone the repository:
-```bash
-git clone https://github.com/QuantTradingOS/<repository-name>.git
-3. Navigate to the repository folder:
-cd <repository-name>
-4. Follow the repository-specific README for setup and usage instructions.
+## Architecture at a Glance
 
-🤝 Contributing
+Intended interaction model (target state; only the agent/review layers are real today):
 
-We welcome contributions! Please follow these steps:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  INTELLIGENCE (signals & context)                                │
+│  Market regime · Sentiment · Insider · (your models)             │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────────┐
+│  CORE ENGINE (planned) — strategy orchestration, order lifecycle  │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────────┐
+│  CONTROL (risk & discipline) — gating, sizing, execution quality  │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────────┐
+│  EXECUTION (planned) — broker connectivity, live/paper orders     │
+└─────────────────────────────────────────────────────────────────┘
 
-Fork the repository.
+REVIEW (parallel): Trade journal, portfolio analyst — support humans.
+```
 
-Create a feature branch:
+Agents feed context and signals. The core engine (future) would run strategies and pass decisions through control. Control would enforce risk and discipline before execution. Today, only the top (intelligence) and the review layer are implemented; core and execution are on the roadmap.
 
-git checkout -b feature/my-feature
+---
 
+## Repository Map
 
-Commit your changes using clear, descriptive messages (e.g., feat(execution-agent): add risk module).
+| Repository | Category | Status | Description |
+|------------|----------|--------|-------------|
+| `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
+| `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
+| `equity-insider-intelligence-agent` | Intelligence | Active | Insider activity and related signal analysis. |
+| `capital-guardian-agent` | Control | Experimental | Pre-execution risk governor: drawdown, regime, exposure. |
+| `capital-allocation-agent` | Control | Experimental | Position sizing, risk limits, trade gating. |
+| `execution-discipline-agent` | Control | Active | Automated evaluation of trade execution discipline. |
+| `trade-journal-coach-agent` | Review | Active | Trade journal analysis and coaching insights. |
+| `portfolio-analyst-agent` | Review | Active | Portfolio performance and risk analytics. |
+| `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 
-Push your branch and submit a pull request.
+**Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra and (future) engine.
 
-📜 License
+---
 
-This organization and its repositories are licensed under the MIT License. See LICENSE
- for details.
+## Who This Is For
+
+- **Systematic traders** who want to plug regime, sentiment, or discipline logic into their own stack.
+- **Researchers** exploring agent-based trading, market regime, or execution quality.
+- **Builders** who prefer modular, open components over a single black box.
+
+---
+
+## Who This Is Not For
+
+- **Black-box autotrading** — We do not offer a "set and forget" bot. Human oversight and your own strategy logic are assumed.
+- **High-frequency trading (HFT)** — Latency and tick-level execution are out of scope.
+- **Turnkey retail bots** — No one-click deployment or guaranteed returns. This is a toolkit and a platform-in-progress.
+
+---
+
+## Getting Started
+
+1. Pick a repository from the table above.
+2. Clone: `git clone https://github.com/QuantTradingOS/<repository-name>.git`
+3. Follow that repo's README for setup and usage.
+
+See **[ROADMAP.md](https://github.com/QuantTradingOS/default/blob/main/ROADMAP.md)** (in the default repo) for phased plans and what we are building next.
+
+---
+
+## Repo README Header Convention
+
+For consistency across the organization, each repository README should include a short **header block** at the top (below the title) with:
+
+| Field | Purpose |
+|-------|---------|
+| **Status** | e.g. Active, Experimental, Planned — matches the org repository map. |
+| **Layer** | One of: Intelligence, Control, Review, Core. |
+| **Integration** | `Standalone` — usable on its own; or `OS-integrated` — expects or plugs into the (future) core engine. |
+
+Example:
+
+```markdown
+# Some-Agent
+
+**Status:** Active · **Layer:** Intelligence · **Integration:** Standalone
+
+...
+```
+
+This lets visitors see at a glance where a repo fits and how mature it is, without opening the org profile.
+
+---
+
+## License
+
+This organization and its repositories are licensed under the MIT License unless stated otherwise in a specific repo.
+
+---
+
+*To update what appears on [github.com/QuantTradingOS](https://github.com/QuantTradingOS): copy this file to the root `README.md` of the [QuantTradingOS/.github](https://github.com/QuantTradingOS/.github) repository and push there.*
