@@ -10,17 +10,17 @@ We are early-stage and transparent about what exists and what does not.
 
 **Currently implemented**
 
+- **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
+- **Backtesting framework (qtos-core)** — Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
-- **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; the core engine that would enforce them is not yet built.
+- **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests.
 - **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
 
 **Not yet implemented (intentional)**
 
-- **Core trading engine** — The runtime that would orchestrate agents, strategies, and orders. No single "run the system" executable yet.
-- **Backtesting / simulation** — No shared backtesting framework. Agents are not yet wired into a simulated or historical execution path.
-- **Live execution & broker connectivity** — No order routing, no broker APIs. Nothing in this org places live trades.
+- **Live execution & broker connectivity** — No order routing, no broker APIs. Nothing in this org places live trades. The core and backtesting are library-only.
 
-If you are looking for a turnkey autotrading or backtesting product, it does not exist here yet. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
+If you are looking for turnkey autotrading or live broker execution, it does not exist here yet. We do offer a deterministic backtesting framework in qtos-core. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
 
 ---
 
@@ -35,7 +35,8 @@ Intended interaction model (target state; only the agent/review layers are real 
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  CORE ENGINE (planned) — strategy orchestration, order lifecycle  │
+│  CORE ENGINE (qtos-core) — EventLoop, Strategy, RiskManager,     │
+│  Portfolio; backtesting with metrics & agent hooks               │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
@@ -43,13 +44,13 @@ Intended interaction model (target state; only the agent/review layers are real 
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  EXECUTION (planned) — broker connectivity, live/paper orders     │
+│  EXECUTION (planned) — broker connectivity, live/paper orders    │
 └─────────────────────────────────────────────────────────────────┘
 
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
 
-Agents feed context and signals. The core engine (future) would run strategies and pass decisions through control. Control would enforce risk and discipline before execution. Today, only the top (intelligence) and the review layer are implemented; core and execution are on the roadmap.
+Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests; it provides interfaces for risk and discipline. Live execution and broker connectivity are not yet implemented.
 
 ---
 
@@ -57,6 +58,8 @@ Agents feed context and signals. The core engine (future) would run strategies a
 
 | Repository | Category | Status | Description |
 |------------|----------|--------|-------------|
+| `qtos-core` | Core | Active | Deterministic event-driven trading core: EventLoop, Strategy, RiskManager, Portfolio. Modular backtesting (OHLCV, metrics, agent hooks). No AI, UI, or broker. |
+| `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
 | `equity-insider-intelligence-agent` | Intelligence | Active | Insider activity and related signal analysis. |
@@ -65,7 +68,6 @@ Agents feed context and signals. The core engine (future) would run strategies a
 | `execution-discipline-agent` | Control | Active | Automated evaluation of trade execution discipline. |
 | `trade-journal-coach-agent` | Review | Active | Trade journal analysis and coaching insights. |
 | `portfolio-analyst-agent` | Review | Active | Portfolio performance and risk analytics. |
-| `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 
 **Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra and (future) engine.
 
