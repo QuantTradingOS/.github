@@ -10,23 +10,24 @@ We are early-stage and transparent about what exists and what does not.
 
 **Currently implemented**
 
+- **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
+- **Backtesting framework (qtos-core)** — Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
+- **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): paper trading adapter simulates fills in real time; same strategy interface as backtesting. Safety: daily PnL limit, max position per trade, kill switch. Placeholders for live brokers (Alpaca, IBKR). Advisors, validators, observers run on execution as in backtesting.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
-- **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; the core engine that would enforce them is not yet built.
+- **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests and execution.
 - **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
 
 **Not yet implemented (intentional)**
 
-- **Core trading engine** — The runtime that would orchestrate agents, strategies, and orders. No single "run the system" executable yet.
-- **Backtesting / simulation** — No shared backtesting framework. Agents are not yet wired into a simulated or historical execution path.
-- **Live execution & broker connectivity** — No order routing, no broker APIs. Nothing in this org places live trades.
+- **Live broker connectivity** — No real broker APIs (Alpaca, IBKR, etc.) wired yet. Paper execution exists in qtos-core; live adapters are interface placeholders.
 
-If you are looking for a turnkey autotrading or backtesting product, it does not exist here yet. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
+If you are looking for turnkey autotrading or live broker execution, it does not exist here yet. We do offer backtesting and paper execution in qtos-core. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
 
 ---
 
 ## Architecture at a Glance
 
-Intended interaction model (target state; only the agent/review layers are real today):
+Interaction model (core, backtesting, and paper execution in qtos-core; live brokers planned):
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -35,21 +36,23 @@ Intended interaction model (target state; only the agent/review layers are real 
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  CORE ENGINE (planned) — strategy orchestration, order lifecycle  │
+│  CORE ENGINE (qtos-core) — EventLoop, Strategy, RiskManager,      │
+│  Portfolio; backtesting + execution layer (BrokerAdapter)        │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  CONTROL (risk & discipline) — gating, sizing, execution quality  │
+│  CONTROL (risk & discipline) — gating, sizing, execution quality │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  EXECUTION (planned) — broker connectivity, live/paper orders     │
+│  EXECUTION (qtos-core) — BrokerAdapter: paper now; live (Alpaca, │
+│  IBKR) placeholders                                              │
 └─────────────────────────────────────────────────────────────────┘
 
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
 
-Agents feed context and signals. The core engine (future) would run strategies and pass decisions through control. Control would enforce risk and discipline before execution. Today, only the top (intelligence) and the review layer are implemented; core and execution are on the roadmap.
+Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter (paper today; live broker adapters are placeholders). Same advisor/validator/observer hooks in backtest and execution.
 
 ---
 
@@ -57,6 +60,8 @@ Agents feed context and signals. The core engine (future) would run strategies a
 
 | Repository | Category | Status | Description |
 |------------|----------|--------|-------------|
+| `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution layer: BrokerAdapter, paper trading, safety (PnL limit, kill switch); live broker placeholders. No AI, UI. |
+| `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
 | `equity-insider-intelligence-agent` | Intelligence | Active | Insider activity and related signal analysis. |
@@ -65,7 +70,6 @@ Agents feed context and signals. The core engine (future) would run strategies a
 | `execution-discipline-agent` | Control | Active | Automated evaluation of trade execution discipline. |
 | `trade-journal-coach-agent` | Review | Active | Trade journal analysis and coaching insights. |
 | `portfolio-analyst-agent` | Review | Active | Portfolio performance and risk analytics. |
-| `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 
 **Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra and (future) engine.
 
@@ -93,7 +97,7 @@ Agents feed context and signals. The core engine (future) would run strategies a
 2. Clone: `git clone https://github.com/QuantTradingOS/<repository-name>.git`
 3. Follow that repo's README for setup and usage.
 
-See **[ROADMAP.md](../ROADMAP.md)** for phased plans and what we are building next.
+See **[ROADMAP.md](ROADMAP.md)** for phased plans and what we are building next.
 
 ---
 
