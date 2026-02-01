@@ -93,7 +93,7 @@ Agents feed context and signals. The core engine (future) would run strategies a
 2. Clone: `git clone https://github.com/QuantTradingOS/<repository-name>.git`
 3. Follow that repo's README for setup and usage.
 
-See **[ROADMAP.md](https://github.com/QuantTradingOS/default/blob/main/ROADMAP.md)** (in the default repo) for phased plans and what we are building next.
+See **[ROADMAP.md](ROADMAP.md)** for phased plans and what we are building next.
 
 ---
 
