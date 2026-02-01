@@ -17,12 +17,14 @@ Our goal is to create a **unified, open, and modular platform** for quantitative
 
 | Repository | Purpose |
 |------------|---------|
+| `capital-allocation-agent` | Risk governor: position sizing, risk limits, trade gating. Consumes regime, portfolio, and discipline inputs. |
+| `capital-guardian-agent` | Pre-execution risk governor: drawdown, regime, and exposure controls. |
 | `execution-discipline-agent` | Automated evaluation of trade execution discipline. |
 | `market-regime-agent` | Market regime detection and classification. |
-| `trade-journal-coach-agent` | Trade journal analysis and coaching insights. |
-| `sentiment-shift-alert-agent` | Financial news sentiment monitoring. |
 | `portfolio-analyst-agent` | Portfolio performance and risk insights. |
 | `equity-insider-intelligence-agent` | Analysis of insider trading and market signals. |
+| `sentiment-shift-alert-agent` | Financial news sentiment monitoring. |
+| `trade-journal-coach-agent` | Trade journal analysis and coaching insights. |
 | `trading-os-framework` | Shared libraries, utilities, and standards across all agents. |
 
 > Each repository is designed to be modular and can be developed or used independently.
