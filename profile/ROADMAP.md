@@ -41,16 +41,18 @@ The orchestrator and qtos-core give you one place that runs the stack and respec
 
 ## Phase 3: Backtesting & Simulation
 
-**Status:** Partially in place (qtos-core backtester); richer integration planned.
+**Status:** Partially in place (qtos-core); richer integration planned.
+
+**Definitions:** **Backtesting** = historical simulation: replay OHLCV through the engine and agents, no live orders. **Simulation** (paper/sandbox) = real-time run with simulated fills (Phase 4 / qtos-core PaperBrokerAdapter).
 
 **Deliverables**
 
-- **Done (qtos-core):** Backtesting path: OHLCV → EventLoop → strategy → risk → metrics (PnL, Sharpe, CAGR, max drawdown). Reproducible runs; agent hooks (Advisors, Validators, Observers) ready.
+- **Done (qtos-core):** Backtesting: load OHLCV (CSV/DataFrame) → EventLoop → strategy → risk → simulated fills → metrics (PnL, Sharpe, CAGR, max drawdown). Reproducible runs; agent hooks (Advisors, Validators, Observers) ready. Paper/sandbox execution (real-time simulation) in qtos-core via PaperBrokerAdapter and LiveBrokerAdapter sandbox.
 - **Planned:** Agent-triggered backtests (e.g. "backtest this signal before alerting"); integration with VectorBT/Backtrader or extended qtos-core backtester; expose backtesting as a callable service/API for the orchestrator or agents.
 
 **Why it matters**
 
-Systematic trading requires testing before live capital. qtos-core backtesting validates engine and strategies on historical data. Phase 3 extends this so agents and the orchestrator can trigger backtests and gate decisions on results.
+Systematic trading requires testing before live capital. qtos-core backtesting validates engine and strategies on historical data; paper/sandbox validates in real time with simulated fills. Phase 3 extends backtesting so agents and the orchestrator can trigger backtests and gate decisions on results.
 
 ---
 
