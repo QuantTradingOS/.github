@@ -6,6 +6,9 @@ We are early-stage and transparent about what exists and what does not.
 
 ---
 
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/c043c75e-428b-4045-be54-694e708d1cd0" />
+
+
 ## Project Status
 
 **Currently implemented**
