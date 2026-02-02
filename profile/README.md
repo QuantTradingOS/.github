@@ -30,7 +30,8 @@ If you are looking for turnkey autotrading, it does not exist here yet. We do of
 
 Interaction model (core, backtesting, and paper execution in qtos-core; live brokers planned):
 
-<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/c043c75e-428b-4045-be54-694e708d1cd0" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/c0b8113f-7b90-4906-8905-90614b8a4f88" />
+
 
 ```
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
