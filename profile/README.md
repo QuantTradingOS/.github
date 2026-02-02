@@ -1,6 +1,6 @@
 # QuantTradingOS
 
-**QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and (eventually) a core engine for systematic trading. Today it is a collection of standalone and composable repositories; the vision is a coherent OS where intelligence, risk, and execution work together with clear boundaries.
+**QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and a core engine (qtos-core) for systematic trading. Repos remain standalone and composable; the **orchestrator** ties them together in one pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes a single FastAPI API, CLI, and scheduler. So today you get both modular building blocks and a coherent run path where intelligence, risk, and execution work together with clear boundaries.
 
 We are early-stage and transparent about what exists and what does not.
 
@@ -58,13 +58,13 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 | `trade-journal-coach-agent` | Review | Active | Trade journal analysis and coaching insights. |
 | `portfolio-analyst-agent` | Review | Active | Portfolio performance and risk analytics. |
 
-**Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra and (future) engine.
+**Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra, engine (qtos-core), and orchestrator.
 
 ---
 
 ## Who This Is For
 
-- **Systematic traders** who want to plug regime, sentiment, or discipline logic into their own stack.
+- **Systematic traders** who want to plug regime, sentiment, or discipline logic into their own stack—or run the full pipeline and API via the orchestrator.
 - **Researchers** exploring agent-based trading, market regime, or execution quality.
 - **Builders** who prefer modular, open components over a single black box.
 
@@ -80,9 +80,9 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 ## Getting Started
 
-1. Pick a repository from the table above.
-2. Clone: `git clone https://github.com/QuantTradingOS/<repository-name>.git`
-3. Follow that repo's README for setup and usage.
+**Run the full pipeline and API:** Clone a workspace that includes the **orchestrator** repo and its sibling agents (Market-Regime-Agent, Portfolio-Analyst-Agent, Capital-Allocation-Agent, etc.). From the workspace root: `python -m orchestrator.run` (CLI) or `uvicorn orchestrator.api:app` (API). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README for layout, scheduler, and agent endpoints.
+
+**Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
 
 See **[ROADMAP.md](ROADMAP.md)** for phased plans and what we are building next.
 
@@ -96,7 +96,7 @@ For consistency across the organization, each repository README should include a
 |-------|---------|
 | **Status** | e.g. Active, Experimental, Planned — matches the org repository map. |
 | **Layer** | One of: Intelligence, Control, Review, Core. |
-| **Integration** | `Standalone` — usable on its own; or `OS-integrated` — expects or plugs into the (future) core engine. |
+| **Integration** | `Standalone` — usable on its own; or `OS-integrated` — used by the orchestrator pipeline and/or qtos-core. |
 
 Example:
 
