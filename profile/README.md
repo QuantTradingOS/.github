@@ -10,6 +10,7 @@ We are early-stage and transparent about what exists and what does not.
 
 **Currently implemented**
 
+- **Orchestration layer (orchestrator)** — One pipeline: regime → portfolio → [execution-discipline] → allocation → [guardian]. FastAPI API with Swagger: POST/GET /decision plus agent endpoints (execution-discipline, guardian, sentiment-alert, insider-report, trade-journal, portfolio-report). Scheduler (APScheduler): run pipeline on an interval or cron, standalone or with the API. CLI: `python -m orchestrator.run`.
 - **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
 - **Backtesting framework (qtos-core)** — Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
 - **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
@@ -52,6 +53,8 @@ Interaction model (core, backtesting, and paper execution in qtos-core; live bro
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
 
+**Orchestrator** runs the pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes it plus all agents via a single FastAPI API and CLI; optional scheduler runs the pipeline on a timer.
+
 Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first; real broker API calls are placeholders). Same advisor/validator/observer hooks in backtest and execution.
 
 ---
@@ -60,6 +63,7 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 | Repository | Category | Status | Description |
 |------------|----------|--------|-------------|
+| `orchestrator` | Core | Active | One pipeline (regime → portfolio → execution-discipline → allocation → guardian). FastAPI API: /decision + agent endpoints (execution-discipline, guardian, sentiment, insider, trade-journal, portfolio-report). Scheduler (interval/cron). CLI: `python -m orchestrator.run`. |
 | `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first, QTOS_LIVE_TRADING_ENABLED gate); safety (PnL limit, kill switch). Live broker API wiring is placeholder. No AI, UI. |
 | `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
