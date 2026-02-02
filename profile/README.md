@@ -12,16 +12,16 @@ We are early-stage and transparent about what exists and what does not.
 
 - **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
 - **Backtesting framework (qtos-core)** — Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
-- **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): paper trading adapter simulates fills in real time; same strategy interface as backtesting. Safety: daily PnL limit, max position per trade, kill switch. Placeholders for live brokers (Alpaca, IBKR). Advisors, validators, observers run on execution as in backtesting.
+- **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
 - **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests and execution.
 - **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
 
 **Not yet implemented (intentional)**
 
-- **Live broker connectivity** — No real broker APIs (Alpaca, IBKR, etc.) wired yet. Paper execution exists in qtos-core; live adapters are interface placeholders.
+- **Live broker API wiring** — LiveBrokerAdapter exists (sandbox-first, safety gate); real broker SDK calls (Alpaca, IBKR, etc.) are placeholders. Paper and live-sandbox execution work in qtos-core; wiring to a specific broker is per-adapter.
 
-If you are looking for turnkey autotrading or live broker execution, it does not exist here yet. We do offer backtesting and paper execution in qtos-core. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
+If you are looking for turnkey autotrading, it does not exist here yet. We do offer backtesting, paper execution, and live execution in sandbox mode in qtos-core. If you are building or researching agent-based trading and want to reuse or contribute to these layers, this is the place.
 
 ---
 
@@ -45,14 +45,14 @@ Interaction model (core, backtesting, and paper execution in qtos-core; live bro
 └──────────────────────────────┬──────────────────────────────────┘
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
-│  EXECUTION (qtos-core) — BrokerAdapter: paper now; live (Alpaca, │
-│  IBKR) placeholders                                              │
+│  EXECUTION (qtos-core) — BrokerAdapter: Paper + LiveBrokerAdapter │
+│  (sandbox-first; live API placeholders)                          │
 └─────────────────────────────────────────────────────────────────┘
 
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
 
-Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter (paper today; live broker adapters are placeholders). Same advisor/validator/observer hooks in backtest and execution.
+Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first; real broker API calls are placeholders). Same advisor/validator/observer hooks in backtest and execution.
 
 ---
 
@@ -60,7 +60,7 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 | Repository | Category | Status | Description |
 |------------|----------|--------|-------------|
-| `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution layer: BrokerAdapter, paper trading, safety (PnL limit, kill switch); live broker placeholders. No AI, UI. |
+| `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first, QTOS_LIVE_TRADING_ENABLED gate); safety (PnL limit, kill switch). Live broker API wiring is placeholder. No AI, UI. |
 | `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
