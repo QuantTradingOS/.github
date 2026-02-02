@@ -6,9 +6,6 @@ We are early-stage and transparent about what exists and what does not.
 
 ---
 
-<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/c043c75e-428b-4045-be54-694e708d1cd0" />
-
-
 ## Project Status
 
 **Currently implemented**
@@ -34,25 +31,8 @@ If you are looking for turnkey autotrading, it does not exist here yet. We do of
 Interaction model (core, backtesting, and paper execution in qtos-core; live brokers planned):
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  INTELLIGENCE (signals & context)                                │
-│  Market regime · Sentiment · Insider · (your models)             │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  CORE ENGINE (qtos-core) — EventLoop, Strategy, RiskManager,      │
-│  Portfolio; backtesting + execution layer (BrokerAdapter)        │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  CONTROL (risk & discipline) — gating, sizing, execution quality │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  EXECUTION (qtos-core) — BrokerAdapter: Paper + LiveBrokerAdapter │
-│  (sandbox-first; live API placeholders)                          │
-└─────────────────────────────────────────────────────────────────┘
 
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/c043c75e-428b-4045-be54-694e708d1cd0" />
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
 
