@@ -10,6 +10,20 @@ Most quant workflows end up as a mess of notebooks, one-off scripts, and glued-t
 
 ---
 
+## Safety‑First by design (across the board)
+
+QuantTradingOS treats **safety and governance as first‑class features**, not add‑ons. The core, orchestration, and AI interfaces all enforce guardrails before anything touches execution:
+
+- **Safety‑First MCP tooling** — policy‑aware tools that inject Institutional Policy context (pgvector semantic search) before trading actions.
+- **Hard‑Limit circuit breakers** — p90 volatility + exposure limits block unsafe orders with explicit error codes.
+- **Strict schemas + corrective feedback** — stop‑loss and limit‑price are mandatory; missing fields trigger corrective feedback loops (adversarial robustness).
+- **Enterprise decision logging** — every agentic decision logs Intent Category + Policy Result into ML‑ready streams (ephemeral + immutable) to monitor drift.
+- **Sandbox‑first execution** — live broker wiring is gated and explicitly opt‑in.
+
+This makes the system **audit‑friendly, deterministic, and resilient** in both research and execution environments.
+
+---
+
 ## Who this is for
 
 - **Solo quants and small teams** who want a coherent stack instead of notebook sprawl—one pipeline, one API, reproducible backtests and paper trading.
