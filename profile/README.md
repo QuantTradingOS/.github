@@ -1,4 +1,4 @@
-# QuantTradingOS
+# Quant Trading OS
 
 **QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and a core engine (qtos-core) for systematic trading. Repos remain standalone and composable; the **orchestrator** ties them together in one pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes a single FastAPI API, CLI, and scheduler. So today you get both modular building blocks and a coherent run path where intelligence, risk, and execution work together with clear boundaries.
 
