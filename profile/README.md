@@ -13,7 +13,7 @@ We are early-stage and transparent about what exists and what does not.
 - **Orchestration layer (orchestrator)** — One pipeline: regime → portfolio → [execution-discipline] → allocation → [guardian]. FastAPI API with Swagger: POST/GET /decision plus agent endpoints (execution-discipline, guardian, sentiment-alert, insider-report, trade-journal, portfolio-report). Scheduler (APScheduler): run pipeline on an interval or cron, standalone or with the API. CLI: `python -m orchestrator.run`.
 - **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
 - **Backtesting & simulation (qtos-core)** — **Backtesting:** Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). **Simulation (paper/sandbox):** PaperBrokerAdapter simulates fills in real time; LiveBrokerAdapter sandbox-first. Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
-- **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
+- **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
 - **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests and execution.
 - **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
@@ -75,6 +75,19 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 - **Black-box autotrading** — We do not offer a "set and forget" bot. Human oversight and your own strategy logic are assumed.
 - **High-frequency trading (HFT)** — Latency and tick-level execution are out of scope.
 - **Turnkey retail bots** — No one-click deployment or guaranteed returns. This is a toolkit and a platform-in-progress.
+
+---
+
+## Data and external APIs
+
+Some agents use external services for data and inference. You provide API keys (in the request body or via environment variables); we do not store keys in the repo.
+
+| Service | Used by | Purpose |
+|---------|---------|---------|
+| **Finnhub** | Sentiment-Shift-Alert-Agent, Equity-Insider-Intelligence-Agent | Company news, insider transactions, market data. Get an API key at [finnhub.io](https://finnhub.io). Set `FINNHUB_API_KEY` or pass `finnhub_key` in the request body. |
+| **OpenAI** | Sentiment-Shift-Alert-Agent (sentiment), Equity-Insider-Intelligence-Agent (reports), Trade-Journal-Coach-Agent (coaching) | LLM inference for sentiment, insider reports, and trade-journal coaching. Set `OPENAI_API_KEY` or pass `openai_key` in the request body. |
+
+The orchestrator README and each agent’s README describe how to supply these keys. For building datasets (e.g. for ML or research), you can log inputs and outcomes from API runs or from backtests; Finnhub and OpenAI provide the data many agents already consume at runtime.
 
 ---
 
