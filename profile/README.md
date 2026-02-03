@@ -39,6 +39,8 @@ REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 
 **Orchestrator** runs the pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes it plus all agents via a single FastAPI API and CLI; optional scheduler runs the pipeline on a timer.
 
+**Data-Ingestion-Service** provides a unified data layer: scheduled ingestion from yfinance (prices) and Finnhub (news, insider) into PostgreSQL/TimescaleDB, exposed via FastAPI. Agents can query the service (set `DATA_SERVICE_URL`) or continue using direct sources (yfinance, Finnhub, CSV) for backward compatibility.
+
 Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first; real broker API calls are placeholders). Same advisor/validator/observer hooks in backtest and execution.
 
 ---
@@ -49,6 +51,7 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 |------------|----------|--------|-------------|
 | `orchestrator` | Core | Active | One pipeline (regime → portfolio → execution-discipline → allocation → guardian). FastAPI API: /decision + agent endpoints (execution-discipline, guardian, sentiment, insider, trade-journal, portfolio-report). Scheduler (interval/cron). CLI: `python -m orchestrator.run`. |
 | `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first, QTOS_LIVE_TRADING_ENABLED gate); safety (PnL limit, kill switch). Live broker API wiring is placeholder. No AI, UI. |
+| `data-ingestion-service` | Core | Active | Unified data layer: PostgreSQL/TimescaleDB for prices, news, insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Agents can use service or direct sources. |
 | `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
