@@ -11,13 +11,14 @@ We are early-stage and transparent about what exists and what does not.
 **Currently implemented**
 
 - **Orchestration layer (orchestrator)** — One pipeline: regime → portfolio → [execution-discipline] → allocation → [guardian]. FastAPI API with Swagger: POST/GET /decision plus agent endpoints (execution-discipline, guardian, sentiment-alert, insider-report, trade-journal, portfolio-report). Scheduler (APScheduler): run pipeline on an interval or cron, standalone or with the API. CLI: `python -m orchestrator.run`.
-- **Data pipeline (data-ingestion-service)** — Unified data layer: PostgreSQL/TimescaleDB for persistent storage of prices, news, and insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Agents can query the service (set `DATA_SERVICE_URL`) or continue using direct sources (yfinance, Finnhub, CSV) for backward compatibility.
+- **Data pipeline (data-ingestion-service)** — Unified data layer: PostgreSQL/TimescaleDB for persistent storage of prices, news, and insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Full-stack Docker runs a one-off price ingestion on data-service startup (TRACKED_SYMBOLS) so backtests work out of the box. Agents can query the service (set `DATA_SERVICE_URL`) or continue using direct sources (yfinance, Finnhub, CSV) for backward compatibility.
 - **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
 - **Backtesting & simulation (qtos-core)** — **Backtesting:** Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). **Simulation (paper/sandbox):** PaperBrokerAdapter simulates fills in real time; LiveBrokerAdapter sandbox-first. Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
 - **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
 - **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests and execution.
 - **Post-trade review** — Trade journal coaching and portfolio analytics. Human-in-the-loop tools for learning and oversight.
+- **AI interface (optional)** — **MCP server** (mcp-server repo): exposes tools (run_backtest, get_prices, get_news, get_insider, run_decision) that call the orchestrator and data service. **Chatbot** (chatbot/ in workspace): Streamlit UI + LangGraph ReAct agent; loads MCP tools via stdio and lets you run backtests, fetch prices/news/insider, or run the pipeline in natural language. Requires orchestrator and data-service running; set OPENAI_API_KEY.
 
 **Not yet implemented (intentional)**
 
@@ -60,7 +61,7 @@ One place to see the full stack and what’s done vs planned. Use this to drive 
 | **Core & backtest** | qtos-core: EventLoop, Strategy, RiskManager, backtesting, metrics. Orchestrator POST/GET /backtest. | Done | Optional: VectorBT/Backtrader; more strategies via API. |
 | **Execution** | PaperBrokerAdapter (working). LiveBrokerAdapter sandbox + safety gate; real broker calls placeholder. | Sandbox done | **Planned:** Wire Alpaca/IBKR in LiveBrokerAdapter; order lifecycle (submit, status, fills, cancel). |
 | **Deploy** | Docker Compose: postgres + data-service + orchestrator in one command. | Done | Optional: cloud deployment docs; minimal UI later. |
-| **AI interface (optional)** | MCP server exposing tools (run backtest, get prices, run pipeline) so chatbots/LLM agents can drive the OS. | Not started | **Planned (optional):** Add MCP server that calls existing REST APIs; document chatbot → MCP → OS flow. |
+| **AI interface (optional)** | MCP server (mcp-server repo) + Chatbot (chatbot/): tools for backtest, prices, news, insider, run_decision; Streamlit + LangGraph. | Done | Optional: add chatbot to Docker stack; more tools. |
 
 **How to use this**
 
@@ -76,7 +77,9 @@ One place to see the full stack and what’s done vs planned. Use this to drive 
 |------------|----------|--------|-------------|
 | `orchestrator` | Core | Active | One pipeline (regime → portfolio → execution-discipline → allocation → guardian). FastAPI API: /decision + agent endpoints (execution-discipline, guardian, sentiment, insider, trade-journal, portfolio-report). Scheduler (interval/cron). CLI: `python -m orchestrator.run`. |
 | `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first, QTOS_LIVE_TRADING_ENABLED gate); safety (PnL limit, kill switch). Live broker API wiring is placeholder. No AI, UI. |
-| `data-ingestion-service` | Core | Active | Unified data layer: PostgreSQL/TimescaleDB for prices, news, insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Agents can use service or direct sources. |
+| `data-ingestion-service` | Core | Active | Unified data layer: PostgreSQL/TimescaleDB for prices, news, insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). Full-stack Docker runs one-off price ingestion on startup. FastAPI: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. |
+| `mcp-server` | Core | Active | MCP server exposing tools (run_backtest, get_prices, get_news, get_insider, run_decision) for AI/chatbot clients. Calls orchestrator and data-ingestion-service. Stdio + SSE. |
+| chatbot (workspace) | Core | Active | Streamlit chat UI + LangGraph ReAct agent; uses MCP tools to run backtests, fetch prices/news/insider, run pipeline. OPENAI_API_KEY required; orchestrator + data-service must be running. |
 | `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
@@ -130,7 +133,9 @@ The orchestrator README and each agent’s README describe how to supply these k
 
 **Set up the data pipeline (optional):** See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README. Quick version: start PostgreSQL/TimescaleDB (`docker-compose up -d postgres`), run migrations (`python -m db.migrate`), start ingestion (`python -m ingestion.scheduler`), start API (`uvicorn api.app:app --port 8001`). Agents can use the service (set `DATA_SERVICE_URL`) or continue using direct sources.
 
-**Run the full stack with Docker (one-command deploy):** From a workspace that contains `orchestrator/`, `data-ingestion-service/`, and the agent repos, run `docker-compose -f orchestrator/docker-compose.full.yml up --build`. This starts PostgreSQL, the data-ingestion-service API, and the orchestrator API (http://localhost:8000 and http://localhost:8001). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Full-stack one-command deploy" section.
+**Run the full stack with Docker (one-command deploy):** From a workspace that contains `orchestrator/`, `data-ingestion-service/`, and the agent repos, run `docker-compose -f orchestrator/docker-compose.full.yml up --build`. This starts PostgreSQL, the data-ingestion-service (runs migrations + one-off price ingestion for TRACKED_SYMBOLS so backtests work), and the orchestrator API (http://localhost:8000 and http://localhost:8001). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Full-stack one-command deploy" section.
+
+**Run the chatbot (optional):** With the stack (or at least orchestrator + data-service) running, from a workspace that also contains `mcp-server/` and `chatbot/`: `cd chatbot`, `pip install -r requirements.txt`, set `OPENAI_API_KEY` in `config/.env`, then `streamlit run app.py`. Ask in natural language for backtests, prices, news, or to run the pipeline.
 
 **Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
 

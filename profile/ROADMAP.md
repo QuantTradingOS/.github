@@ -80,6 +80,7 @@ Execution is the last link: the OS is "full stack" when it can route orders thro
 
 - **Documentation**: setup, configuration, and "run your first backtest / paper run" guides.
 - **Tooling**: CLI or minimal UI for config, run, and inspect (e.g. logs, simple dashboards).
+- **AI interface (optional):** **Done.** MCP server (mcp-server repo) exposes tools (run_backtest, get_prices, get_news, get_insider, run_decision). Chatbot (chatbot/ in workspace): Streamlit + LangGraph ReAct agent; loads MCP tools via stdio; run backtests, fetch data, or run the pipeline in natural language. Full-stack Docker: data-service runs one-off price ingestion on startup (TRACKED_SYMBOLS) so backtests work out of the box.
 - **Developer experience**: clear APIs, examples, and contribution guidelines so new repos and agents are easy to add.
 - No promise of a polished retail UI; focus is on builders and systematic traders.
 
@@ -99,4 +100,4 @@ Usability and clarity determine whether the OS is actually used and extended. Ph
 | 4 | Execution & broker connectivity (paper, then live) | Planned (paper/sandbox done; live broker wiring next) |
 | 5 | UX, tooling, developer experience | Ongoing |
 
-What exists today: Phase 1 (agents + orchestrator) and Phase 2 orchestration; qtos-core (backtesting, paper/sandbox execution); Phase 3 agent-triggered backtests via orchestrator POST/GET /backtest. Next: Phase 4 (live broker wiring), Phase 5 (Docker, docs), optional VectorBT/Backtrader. For repo-level status, see the [organization profile](README.md) and the repository map there.
+What exists today: Phase 1 (agents + orchestrator) and Phase 2 orchestration; qtos-core (backtesting, paper/sandbox execution); Phase 3 agent-triggered backtests via orchestrator POST/GET /backtest; Phase 5 MCP server + chatbot (Streamlit + LangGraph), full-stack Docker with data-service one-off price ingestion on startup. Next: Phase 4 (live broker wiring), Phase 5 (cloud docs, optional VectorBT/Backtrader). For repo-level status, see the [organization profile](README.md) and the repository map there.
