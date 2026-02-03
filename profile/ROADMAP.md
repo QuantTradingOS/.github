@@ -41,14 +41,15 @@ The orchestrator and qtos-core give you one place that runs the stack and respec
 
 ## Phase 3: Backtesting & Simulation
 
-**Status:** Partially in place (qtos-core); richer integration planned.
+**Status:** Partially in place (qtos-core); agent-integrated API in place.
 
 **Definitions:** **Backtesting** = historical simulation: replay OHLCV through the engine and agents, no live orders. **Simulation** (paper/sandbox) = real-time run with simulated fills (Phase 4 / qtos-core PaperBrokerAdapter).
 
 **Deliverables**
 
 - **Done (qtos-core):** Backtesting: load OHLCV (CSV/DataFrame) → EventLoop → strategy → risk → simulated fills → metrics (PnL, Sharpe, CAGR, max drawdown). Reproducible runs; agent hooks (Advisors, Validators, Observers) ready. Paper/sandbox execution (real-time simulation) in qtos-core via PaperBrokerAdapter and LiveBrokerAdapter sandbox.
-- **Planned:** Agent-triggered backtests (e.g. "backtest this signal before alerting"); integration with VectorBT/Backtrader or extended qtos-core backtester; expose backtesting as a callable service/API for the orchestrator or agents.
+- **Done (orchestrator):** **POST/GET /backtest** — run qtos-core backtest; data from CSV or data-ingestion-service. Agents can call the API and gate alerts on metrics (e.g. only alert if sharpe_ratio > threshold). See orchestrator BACKTEST-PHASE3.md.
+- **Planned:** Integration with VectorBT/Backtrader or extended qtos-core backtester; more strategies exposed via /backtest.
 
 **Why it matters**
 
@@ -94,8 +95,8 @@ Usability and clarity determine whether the OS is actually used and extended. Ph
 |-------|--------|--------|
 | 1 | Agent foundations + orchestrator (pipeline, API, scheduler) | Completed / active |
 | 2 | Core engine (qtos-core) + orchestration | In progress (orchestration done; config/composition optional later) |
-| 3 | Backtesting & simulation | Partial (qtos-core backtester); agent-integrated backtests planned |
+| 3 | Backtesting & simulation | Partial (qtos-core backtester); /backtest API for agent-triggered backtests in place |
 | 4 | Execution & broker connectivity (paper, then live) | Planned (paper/sandbox done; live broker wiring next) |
 | 5 | UX, tooling, developer experience | Ongoing |
 
-What exists today: Phase 1 (agents + orchestrator) and Phase 2 orchestration; qtos-core (backtesting, paper/sandbox execution). Next: Phase 4 (live broker wiring), Phase 3 enhancements (agent-triggered backtests), Phase 5 (Docker, docs). For repo-level status, see the [organization profile](README.md) and the repository map there.
+What exists today: Phase 1 (agents + orchestrator) and Phase 2 orchestration; qtos-core (backtesting, paper/sandbox execution); Phase 3 agent-triggered backtests via orchestrator POST/GET /backtest. Next: Phase 4 (live broker wiring), Phase 5 (Docker, docs), optional VectorBT/Backtrader. For repo-level status, see the [organization profile](README.md) and the repository map there.
