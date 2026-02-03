@@ -94,7 +94,9 @@ The orchestrator README and each agent’s README describe how to supply these k
 
 ## Getting Started
 
-**Run the full pipeline and API:** Clone a workspace that includes the **orchestrator** repo and its sibling agents (Market-Regime-Agent, Portfolio-Analyst-Agent, Capital-Allocation-Agent, etc.). From the workspace root: `python -m orchestrator.run` (CLI) or `uvicorn orchestrator.api:app` (API). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README for layout, scheduler, and agent endpoints.
+**Run your first backtest:** See the [qtos-core](https://github.com/QuantTradingOS/qtos-core) README "Getting Started" section. Quick version: clone qtos-core, `pip install -e .`, run `PYTHONPATH=. python examples/buy_and_hold_backtest.py`.
+
+**Run your first pipeline (orchestrator):** See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Getting Started" section. Quick version: clone a workspace with orchestrator + sibling agents, `pip install -r orchestrator/requirements.txt`, then `python -m orchestrator.run` (CLI) or `uvicorn orchestrator.api:app` (API). The orchestrator README has step-by-step guides for both CLI and API.
 
 **Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
 
