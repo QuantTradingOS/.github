@@ -85,11 +85,13 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 ## Data and external APIs
 
-Some agents use external services for data and inference. You provide API keys (in the request body or via environment variables); we do not store keys in the repo.
+**Data sources:** Agents can use the **data-ingestion-service** (unified data layer with PostgreSQL/TimescaleDB) or fetch directly from external sources. The data service ingests prices from yfinance and news/insider data from Finnhub on a schedule, storing them persistently. Agents query the service via FastAPI endpoints (`/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`) or fall back to direct sources (yfinance, Finnhub, CSV) if `DATA_SERVICE_URL` is not set. See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README for setup.
+
+**External services for inference:** Some agents use external services for LLM inference. You provide API keys (in the request body or via environment variables); we do not store keys in the repo.
 
 | Service | Used by | Purpose |
 |---------|---------|---------|
-| **Finnhub** | Sentiment-Shift-Alert-Agent, Equity-Insider-Intelligence-Agent | Company news, insider transactions, market data. Get an API key at [finnhub.io](https://finnhub.io). Set `FINNHUB_API_KEY` or pass `finnhub_key` in the request body. |
+| **Finnhub** | data-ingestion-service (ingestion), Sentiment-Shift-Alert-Agent, Equity-Insider-Intelligence-Agent | Company news, insider transactions, market data. Get an API key at [finnhub.io](https://finnhub.io). Set `FINNHUB_API_KEY` or pass `finnhub_key` in the request body. |
 | **OpenAI** | Sentiment-Shift-Alert-Agent (sentiment), Equity-Insider-Intelligence-Agent (reports), Trade-Journal-Coach-Agent (coaching) | LLM inference for sentiment, insider reports, and trade-journal coaching. Set `OPENAI_API_KEY` or pass `openai_key` in the request body. |
 
 The orchestrator README and each agent’s README describe how to supply these keys. For building datasets (e.g. for ML or research), you can log inputs and outcomes from API runs or from backtests; Finnhub and OpenAI provide the data many agents already consume at runtime.
