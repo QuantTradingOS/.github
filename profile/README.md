@@ -106,6 +106,8 @@ The orchestrator README and each agent’s README describe how to supply these k
 
 **Set up the data pipeline (optional):** See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README. Quick version: start PostgreSQL/TimescaleDB (`docker-compose up -d postgres`), run migrations (`python -m db.migrate`), start ingestion (`python -m ingestion.scheduler`), start API (`uvicorn api.app:app --port 8001`). Agents can use the service (set `DATA_SERVICE_URL`) or continue using direct sources.
 
+**Run the full stack with Docker (one-command deploy):** From a workspace that contains `orchestrator/`, `data-ingestion-service/`, and the agent repos, run `docker-compose -f orchestrator/docker-compose.full.yml up --build`. This starts PostgreSQL, the data-ingestion-service API, and the orchestrator API (http://localhost:8000 and http://localhost:8001). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Full-stack one-command deploy" section.
+
 **Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
 
 See **[ROADMAP.md](ROADMAP.md)** for phased plans and what we are building next.
