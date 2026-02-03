@@ -1,6 +1,6 @@
-# QuantTradingOS
+# Quant Trading OS
 
-**QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and (eventually) a core engine for systematic trading. Today it is a collection of standalone and composable repositories; the vision is a coherent OS where intelligence, risk, and execution work together with clear boundaries.
+**QuantTradingOS** is a modular, agent-based trading operating system: a set of AI agents, control layers, and a core engine (qtos-core) for systematic trading. Repos remain standalone and composable; the **orchestrator** ties them together in one pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes a single FastAPI API, CLI, and scheduler. So today you get both modular building blocks and a coherent run path where intelligence, risk, and execution work together with clear boundaries.
 
 We are early-stage and transparent about what exists and what does not.
 
@@ -10,8 +10,10 @@ We are early-stage and transparent about what exists and what does not.
 
 **Currently implemented**
 
+- **Orchestration layer (orchestrator)** — One pipeline: regime → portfolio → [execution-discipline] → allocation → [guardian]. FastAPI API with Swagger: POST/GET /decision plus agent endpoints (execution-discipline, guardian, sentiment-alert, insider-report, trade-journal, portfolio-report). Scheduler (APScheduler): run pipeline on an interval or cron, standalone or with the API. CLI: `python -m orchestrator.run`.
+- **Data pipeline (data-ingestion-service)** — Unified data layer: PostgreSQL/TimescaleDB for persistent storage of prices, news, and insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Agents can query the service (set `DATA_SERVICE_URL`) or continue using direct sources (yfinance, Finnhub, CSV) for backward compatibility.
 - **Core trading engine (qtos-core)** — Event-driven runtime: EventLoop, Strategy, RiskManager, Portfolio, Order, Signal. Deterministic, no broker or AI in the core; agents plug in as advisors, validators, or observers.
-- **Backtesting framework (qtos-core)** — Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
+- **Backtesting & simulation (qtos-core)** — **Backtesting:** Load OHLCV (CSV/DataFrame), run strategies through the engine, simulate fills, compute metrics (PnL, Sharpe, CAGR, max drawdown). **Simulation (paper/sandbox):** PaperBrokerAdapter simulates fills in real time; LiveBrokerAdapter sandbox-first. Agent hooks (Advisors, Validators, Observers) ready for MarketRegime, Sentiment, CapitalGuardian, etc.
 - **Execution layer (qtos-core)** — Broker abstraction (BrokerAdapter): PaperBrokerAdapter and LiveBrokerAdapter. Paper simulates fills in real time; Live is sandbox-first (sandbox=True by default), with QTOS_LIVE_TRADING_ENABLED safety gate for real orders. Same strategy interface as backtesting; swap adapters without changing engine or agents. Safety: daily PnL limit, max position per trade, kill switch. Real broker API calls (Alpaca, IBKR, etc.) are placeholders in LiveBrokerAdapter; interface is ready.
 - **Intelligence agents** — Market regime detection, sentiment monitoring, insider-signal analysis. These agents produce signals and context; they do not execute.
 - **Risk & discipline** — Execution discipline evaluation and (where present) pre-trade risk governors (e.g. capital guardian). They assess or gate decisions; qtos-core provides the interfaces to enforce them in backtests and execution.
@@ -29,28 +31,16 @@ If you are looking for turnkey autotrading, it does not exist here yet. We do of
 
 Interaction model (core, backtesting, and paper execution in qtos-core; live brokers planned):
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  INTELLIGENCE (signals & context)                                │
-│  Market regime · Sentiment · Insider · (your models)             │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  CORE ENGINE (qtos-core) — EventLoop, Strategy, RiskManager,      │
-│  Portfolio; backtesting + execution layer (BrokerAdapter)        │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  CONTROL (risk & discipline) — gating, sizing, execution quality │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────────┐
-│  EXECUTION (qtos-core) — BrokerAdapter: Paper + LiveBrokerAdapter │
-│  (sandbox-first; live API placeholders)                          │
-└─────────────────────────────────────────────────────────────────┘
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/c0b8113f-7b90-4906-8905-90614b8a4f88" />
 
+
+```
 REVIEW (parallel): Trade journal, portfolio analyst — support humans.
 ```
+
+**Orchestrator** runs the pipeline (regime → portfolio → allocation, optional discipline and guardian) and exposes it plus all agents via a single FastAPI API and CLI; optional scheduler runs the pipeline on a timer.
+
+**Data-Ingestion-Service** provides a unified data layer: scheduled ingestion from yfinance (prices) and Finnhub (news, insider) into PostgreSQL/TimescaleDB, exposed via FastAPI. Agents can query the service (set `DATA_SERVICE_URL`) or continue using direct sources (yfinance, Finnhub, CSV) for backward compatibility.
 
 Agents feed context and signals. The core engine (qtos-core) runs strategies and passes decisions through control in backtests and in execution (paper mode). Execution layer provides BrokerAdapter: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first; real broker API calls are placeholders). Same advisor/validator/observer hooks in backtest and execution.
 
@@ -60,7 +50,9 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 | Repository | Category | Status | Description |
 |------------|----------|--------|-------------|
+| `orchestrator` | Core | Active | One pipeline (regime → portfolio → execution-discipline → allocation → guardian). FastAPI API: /decision + agent endpoints (execution-discipline, guardian, sentiment, insider, trade-journal, portfolio-report). Scheduler (interval/cron). CLI: `python -m orchestrator.run`. |
 | `qtos-core` | Core | Active | Event-driven core: EventLoop, Strategy, RiskManager, Portfolio. Backtesting (OHLCV, metrics). Execution: PaperBrokerAdapter and LiveBrokerAdapter (sandbox-first, QTOS_LIVE_TRADING_ENABLED gate); safety (PnL limit, kill switch). Live broker API wiring is placeholder. No AI, UI. |
+| `data-ingestion-service` | Core | Active | Unified data layer: PostgreSQL/TimescaleDB for prices, news, insider transactions. Scheduled ingestion from yfinance (prices) and Finnhub (news, insider). FastAPI endpoints: `/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`. Agents can use service or direct sources. |
 | `trading-os-framework` | Core | Active | Shared libraries, utilities, and conventions for agents. |
 | `market-regime-agent` | Intelligence | Active | Market regime detection and classification. |
 | `sentiment-shift-alert-agent` | Intelligence | Active | Financial news and sentiment monitoring. |
@@ -71,13 +63,13 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 | `trade-journal-coach-agent` | Review | Active | Trade journal analysis and coaching insights. |
 | `portfolio-analyst-agent` | Review | Active | Portfolio performance and risk analytics. |
 
-**Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra and (future) engine.
+**Category key:** **Intelligence** = signals/context; **Control** = risk & discipline; **Review** = post-trade and human support; **Core** = shared infra, engine (qtos-core), and orchestrator.
 
 ---
 
 ## Who This Is For
 
-- **Systematic traders** who want to plug regime, sentiment, or discipline logic into their own stack.
+- **Systematic traders** who want to plug regime, sentiment, or discipline logic into their own stack—or run the full pipeline and API via the orchestrator.
 - **Researchers** exploring agent-based trading, market regime, or execution quality.
 - **Builders** who prefer modular, open components over a single black box.
 
@@ -91,13 +83,32 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 ---
 
+## Data and external APIs
+
+**Data sources:** Agents can use the **data-ingestion-service** (unified data layer with PostgreSQL/TimescaleDB) or fetch directly from external sources. The data service ingests prices from yfinance and news/insider data from Finnhub on a schedule, storing them persistently. Agents query the service via FastAPI endpoints (`/prices/{symbol}`, `/news/{symbol}`, `/insider/{symbol}`) or fall back to direct sources (yfinance, Finnhub, CSV) if `DATA_SERVICE_URL` is not set. See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README for setup.
+
+**External services for inference:** Some agents use external services for LLM inference. You provide API keys (in the request body or via environment variables); we do not store keys in the repo.
+
+| Service | Used by | Purpose |
+|---------|---------|---------|
+| **Finnhub** | data-ingestion-service (ingestion), Sentiment-Shift-Alert-Agent, Equity-Insider-Intelligence-Agent | Company news, insider transactions, market data. Get an API key at [finnhub.io](https://finnhub.io). Set `FINNHUB_API_KEY` or pass `finnhub_key` in the request body. |
+| **OpenAI** | Sentiment-Shift-Alert-Agent (sentiment), Equity-Insider-Intelligence-Agent (reports), Trade-Journal-Coach-Agent (coaching) | LLM inference for sentiment, insider reports, and trade-journal coaching. Set `OPENAI_API_KEY` or pass `openai_key` in the request body. |
+
+The orchestrator README and each agent's README describe how to supply these keys. For building datasets (e.g. for ML or research), you can log inputs and outcomes from API runs or from backtests; Finnhub and OpenAI provide the data many agents already consume at runtime.
+
+---
+
 ## Getting Started
 
-1. Pick a repository from the table above.
-2. Clone: `git clone https://github.com/QuantTradingOS/<repository-name>.git`
-3. Follow that repo's README for setup and usage.
+**Run your first backtest:** See the [qtos-core](https://github.com/QuantTradingOS/qtos-core) README "Getting Started" section. Quick version: clone qtos-core, `pip install -e .`, run `PYTHONPATH=. python examples/buy_and_hold_backtest.py`.
 
-See **[ROADMAP.md](profile/ROADMAP.md)** for phased plans and what we are building next.
+**Run your first pipeline (orchestrator):** See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Getting Started" section. Quick version: clone a workspace with orchestrator + sibling agents, `pip install -r orchestrator/requirements.txt`, then `python -m orchestrator.run` (CLI) or `uvicorn orchestrator.api:app` (API). The orchestrator README has step-by-step guides for both CLI and API.
+
+**Set up the data pipeline (optional):** See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README. Quick version: start PostgreSQL/TimescaleDB (`docker-compose up -d postgres`), run migrations (`python -m db.migrate`), start ingestion (`python -m ingestion.scheduler`), start API (`uvicorn api.app:app --port 8001`). Agents can use the service (set `DATA_SERVICE_URL`) or continue using direct sources.
+
+**Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
+
+See **[profile/ROADMAP.md](profile/ROADMAP.md)** for phased plans and what we are building next.
 
 ---
 
@@ -109,7 +120,7 @@ For consistency across the organization, each repository README should include a
 |-------|---------|
 | **Status** | e.g. Active, Experimental, Planned — matches the org repository map. |
 | **Layer** | One of: Intelligence, Control, Review, Core. |
-| **Integration** | `Standalone` — usable on its own; or `OS-integrated` — expects or plugs into the (future) core engine. |
+| **Integration** | `Standalone` — usable on its own; or `OS-integrated` — used by the orchestrator pipeline and/or qtos-core. |
 
 Example:
 
@@ -131,4 +142,4 @@ This organization and its repositories are licensed under the MIT License unless
 
 ---
 
-*To update what appears on [github.com/QuantTradingOS](https://github.com/QuantTradingOS): copy this file to the root `README.md` of the [QuantTradingOS/.github](https://github.com/QuantTradingOS/.github) repository and push there.*
+*To update this org profile: edit [profile/README.md](profile/README.md) in this repo, then copy it here (root README.md) and push so [github.com/QuantTradingOS](https://github.com/QuantTradingOS) shows the latest.*
