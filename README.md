@@ -46,6 +46,29 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 ---
 
+## Complete architecture & TODO
+
+One place to see the full stack and what’s done vs planned. Use this to drive a consistent TODO list across repos.
+
+**Layers (bottom → top)**
+
+| Layer | What it is | Status | Next / TODO |
+|-------|------------|--------|-------------|
+| **Data** | PostgreSQL/TimescaleDB + data-ingestion-service (prices, news, insider). FastAPI. | Done | Optional: agent migration to service; streaming (Kafka/Redpanda) later. |
+| **Orchestrator** | One pipeline (regime → portfolio → [discipline] → allocation → [guardian]). FastAPI, CLI, scheduler. | Done | Optional: event bus / LangGraph for conditional flows. |
+| **Core & backtest** | qtos-core: EventLoop, Strategy, RiskManager, backtesting, metrics. Orchestrator POST/GET /backtest. | Done | Optional: VectorBT/Backtrader; more strategies via API. |
+| **Execution** | PaperBrokerAdapter (working). LiveBrokerAdapter sandbox + safety gate; real broker calls placeholder. | Sandbox done | **Planned:** Wire Alpaca/IBKR in LiveBrokerAdapter; order lifecycle (submit, status, fills, cancel). |
+| **Deploy** | Docker Compose: postgres + data-service + orchestrator in one command. | Done | Optional: cloud deployment docs; minimal UI later. |
+| **AI interface (optional)** | MCP server exposing tools (run backtest, get prices, run pipeline) so chatbots/LLM agents can drive the OS. | Not started | **Planned (optional):** Add MCP server that calls existing REST APIs; document chatbot → MCP → OS flow. |
+
+**How to use this**
+
+- **Implementing:** Pick a row; “Next / TODO” is the backlog for that layer. Detailed tasks live in [ROADMAP.md](profile/ROADMAP.md) and (in workspace) [TODO.md](../TODO.md).
+- **Designing:** Data → Orchestrator → Core → Execution is the main path. REST (FastAPI) is the primary API; MCP is an optional AI-facing layer that sits on top and calls REST.
+- **Chatbot/LLM:** A chatbot talks to an MCP server; the MCP server calls the orchestrator and data service. No need to replace REST.
+
+---
+
 ## Repository Map
 
 | Repository | Category | Status | Description |
@@ -105,6 +128,8 @@ The orchestrator README and each agent's README describe how to supply these key
 **Run your first pipeline (orchestrator):** See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Getting Started" section. Quick version: clone a workspace with orchestrator + sibling agents, `pip install -r orchestrator/requirements.txt`, then `python -m orchestrator.run` (CLI) or `uvicorn orchestrator.api:app` (API). The orchestrator README has step-by-step guides for both CLI and API.
 
 **Set up the data pipeline (optional):** See the [data-ingestion-service](https://github.com/QuantTradingOS/data-ingestion-service) README. Quick version: start PostgreSQL/TimescaleDB (`docker-compose up -d postgres`), run migrations (`python -m db.migrate`), start ingestion (`python -m ingestion.scheduler`), start API (`uvicorn api.app:app --port 8001`). Agents can use the service (set `DATA_SERVICE_URL`) or continue using direct sources.
+
+**Run the full stack with Docker (one-command deploy):** From a workspace that contains `orchestrator/`, `data-ingestion-service/`, and the agent repos, run `docker-compose -f orchestrator/docker-compose.full.yml up --build`. This starts PostgreSQL, the data-ingestion-service API, and the orchestrator API (http://localhost:8000 and http://localhost:8001). See the [orchestrator](https://github.com/QuantTradingOS/orchestrator) README "Full-stack one-command deploy" section.
 
 **Use or contribute to individual repos:** Pick a repository from the table above, clone `https://github.com/QuantTradingOS/<repository-name>.git`, and follow that repo's README.
 

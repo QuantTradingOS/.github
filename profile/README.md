@@ -46,6 +46,29 @@ Agents feed context and signals. The core engine (qtos-core) runs strategies and
 
 ---
 
+## Complete architecture & TODO
+
+One place to see the full stack and what’s done vs planned. Use this to drive a consistent TODO list across repos.
+
+**Layers (bottom → top)**
+
+| Layer | What it is | Status | Next / TODO |
+|-------|------------|--------|-------------|
+| **Data** | PostgreSQL/TimescaleDB + data-ingestion-service (prices, news, insider). FastAPI. | Done | Optional: agent migration to service; streaming (Kafka/Redpanda) later. |
+| **Orchestrator** | One pipeline (regime → portfolio → [discipline] → allocation → [guardian]). FastAPI, CLI, scheduler. | Done | Optional: event bus / LangGraph for conditional flows. |
+| **Core & backtest** | qtos-core: EventLoop, Strategy, RiskManager, backtesting, metrics. Orchestrator POST/GET /backtest. | Done | Optional: VectorBT/Backtrader; more strategies via API. |
+| **Execution** | PaperBrokerAdapter (working). LiveBrokerAdapter sandbox + safety gate; real broker calls placeholder. | Sandbox done | **Planned:** Wire Alpaca/IBKR in LiveBrokerAdapter; order lifecycle (submit, status, fills, cancel). |
+| **Deploy** | Docker Compose: postgres + data-service + orchestrator in one command. | Done | Optional: cloud deployment docs; minimal UI later. |
+| **AI interface (optional)** | MCP server exposing tools (run backtest, get prices, run pipeline) so chatbots/LLM agents can drive the OS. | Not started | **Planned (optional):** Add MCP server that calls existing REST APIs; document chatbot → MCP → OS flow. |
+
+**How to use this**
+
+- **Implementing:** Pick a row; “Next / TODO” is the backlog for that layer. Detailed tasks live in [ROADMAP.md](ROADMAP.md) and workspace [TODO.md](../../TODO.md).
+- **Designing:** Data → Orchestrator → Core → Execution is the main path. REST (FastAPI) is the primary API; MCP is an optional AI-facing layer that sits on top and calls REST.
+- **Chatbot/LLM:** A chatbot talks to an MCP server; the MCP server calls the orchestrator and data service. No need to replace REST.
+
+---
+
 ## Repository Map
 
 | Repository | Category | Status | Description |
