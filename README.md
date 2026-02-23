@@ -70,92 +70,20 @@ Agents don't load everything into context. They navigate.
 
 The system contains 45 skill nodes distributed across 9 agents and a shared layer. Each node is a structured markdown file covering a specific domain: `circuit_breaker_logic`, `bear_market_behavior`, `bullish_insider_patterns`, `pipeline_sequencing_rules`, and so on.
 
+**High-level flow** (all layers feed into traversal; traversal injects context before each agent call):
+
 ```mermaid
-graph TB
-    subgraph SHARED["🌐 Shared Layer"]
-        CR[current_regime]
-        PS[portfolio_state]
-        RD[recent_decisions]
-        VP[verified_performance]
+graph LR
+    subgraph SOURCES["Skill node sources"]
+        SHARED["🌐 Shared · 4 nodes"]
+        INTEL["🧠 Intelligence · 3 agents · 13 nodes"]
+        CONTROL["🛡️ Control · 3 agents · 13 nodes"]
+        REVIEW["📊 Review · 2 agents · 8 nodes"]
+        ORCH["⚙️ Orchestrator · 4 nodes"]
     end
 
-    subgraph INTEL["🧠 Intelligence Agents"]
-        subgraph MRA["Market Regime Agent"]
-            MRA1[bull_market]
-            MRA2[bear_market]
-            MRA3[sideways_market]
-            MRA4[high_volatility]
-            MRA5[regime_classification_rules]
-        end
-
-        subgraph SSA["Sentiment Agent"]
-            SSA1[positive_shift_signals]
-            SSA2[negative_shift_signals]
-            SSA3[noise_vs_signal]
-            SSA4[sector_specific_context]
-        end
-
-        subgraph EIA["Insider Intelligence Agent"]
-            EIA1[bullish_insider_patterns]
-            EIA2[bearish_insider_patterns]
-            EIA3[filing_types]
-            EIA4[materiality_thresholds]
-        end
-    end
-
-    subgraph CONTROL["🛡️ Control Agents"]
-        subgraph CGA["Capital Guardian Agent"]
-            CGA1[circuit_breaker_logic]
-            CGA2[drawdown_rules]
-            CGA3[position_limits]
-            CGA4[volatility_thresholds]
-            CGA5[bear_bull_market_behavior]
-        end
-
-        subgraph CAA["Capital Allocation Agent"]
-            CAA1[position_sizing_rules]
-            CAA2[risk_limit_enforcement]
-            CAA3[regime_based_allocation]
-            CAA4[trade_gating_criteria]
-        end
-
-        subgraph EDA["Execution Discipline Agent"]
-            EDA1[plan_compliance_rules]
-            EDA2[regime_execution_standards]
-            EDA3[violation_categories]
-            EDA4[scoring_methodology]
-        end
-    end
-
-    subgraph REVIEW["📊 Review Agents"]
-        subgraph TJA["Trade Journal Coach"]
-            TJA1[behavioral_patterns]
-            TJA2[performance_metrics_interpretation]
-            TJA3[coaching_frameworks]
-            TJA4[common_trading_mistakes]
-        end
-
-        subgraph PAA["Portfolio Analyst"]
-            PAA1[risk_metrics]
-            PAA2[performance_attribution]
-            PAA3[concentration_rules]
-            PAA4[rebalancing_signals]
-        end
-    end
-
-    subgraph ORCH["⚙️ Orchestrator"]
-        ORC1[pipeline_sequencing_rules]
-        ORC2[agent_weighting_logic]
-        ORC3[error_handling_patterns]
-        ORC4[fallback_behavior]
-    end
-
-    subgraph TRAVERSAL["🔍 Skill Graph Traversal"]
-        EMB[pgvector embeddings\ntext-embedding-3-small]
-        COS[cosine similarity search]
-        BOOST[agent-boost scoring]
-        INJ[context injection\nbefore agent call]
-    end
+    TRAVERSAL["🔍 Traversal: pgvector + cosine similarity + agent boost"]
+    INJ["→ Context injected before agent call"]
 
     SHARED --> TRAVERSAL
     INTEL --> TRAVERSAL
@@ -163,25 +91,22 @@ graph TB
     REVIEW --> TRAVERSAL
     ORCH --> TRAVERSAL
     TRAVERSAL --> INJ
-
-    VP --> ORC2
-
-    style SHARED fill:#1a1a2e,stroke:#4a9eff,color:#fff
-    style INTEL fill:#0d2137,stroke:#4a9eff,color:#fff
-    style CONTROL fill:#1a0d2e,stroke:#9b59b6,color:#fff
-    style REVIEW fill:#0d2e1a,stroke:#2ecc71,color:#fff
-    style ORCH fill:#2e1a0d,stroke:#e67e22,color:#fff
-    style TRAVERSAL fill:#1a1a1a,stroke:#e74c3c,color:#fff
-    style MRA fill:#0a1a2e,stroke:#4a9eff,color:#ccc
-    style SSA fill:#0a1a2e,stroke:#4a9eff,color:#ccc
-    style EIA fill:#0a1a2e,stroke:#4a9eff,color:#ccc
-    style CGA fill:#150a2e,stroke:#9b59b6,color:#ccc
-    style CAA fill:#150a2e,stroke:#9b59b6,color:#ccc
-    style EDA fill:#150a2e,stroke:#9b59b6,color:#ccc
-    style TJA fill:#0a2e15,stroke:#2ecc71,color:#ccc
-    style PAA fill:#0a2e15,stroke:#2ecc71,color:#ccc
-    style ORCH fill:#2e1a0d,stroke:#e67e22,color:#ccc
 ```
+
+**All 45 skill nodes by agent** (reference):
+
+| Layer | Agent | Skill nodes |
+|-------|--------|-------------|
+| **Shared** | — | `current_regime`, `portfolio_state`, `recent_decisions`, `verified_performance` (regime_agent, sentiment_agent, insider_agent) |
+| **Intelligence** | Market Regime | bull_market, bear_market, sideways_market, high_volatility, regime_classification_rules |
+| | Sentiment | positive_shift_signals, negative_shift_signals, noise_vs_signal, sector_specific_context |
+| | Insider Intelligence | bullish_insider_patterns, bearish_insider_patterns, filing_types, materiality_thresholds |
+| **Control** | Capital Guardian | circuit_breaker_logic, drawdown_rules, position_limits, volatility_thresholds, bear_market_behavior, bull_market_behavior |
+| | Capital Allocation | position_sizing_rules, risk_limit_enforcement, regime_based_allocation, trade_gating_criteria |
+| | Execution Discipline | plan_compliance_rules, regime_execution_standards, violation_categories, scoring_methodology |
+| **Review** | Trade Journal Coach | behavioral_patterns, performance_metrics_interpretation, coaching_frameworks, common_trading_mistakes |
+| | Portfolio Analyst | risk_metrics, performance_attribution, concentration_rules, rebalancing_signals |
+| **Orchestrator** | — | pipeline_sequencing_rules, agent_weighting_logic, error_handling_patterns, fallback_behavior |
 
 At runtime, before each agent call, the orchestrator does this:
 
