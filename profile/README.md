@@ -296,6 +296,6 @@ Example: `**Status:** Active · **Layer:** Intelligence · **Integration:** Stan
 
 MIT unless stated otherwise in a specific repo.
 
----
+----
 
-*To update the org profile on [github.com/QuantTradingOS](https://github.com/QuantTradingOS): copy this file to the root `README.md` of the [QuantTradingOS/.github](https://github.com/QuantTradingOS/.github) repository and push.*
+*To update the org profile on [github.com/QuantTradingOS](https://github.com/QuantTradingOS): copy this file to the root `README.md` of the [QuantTradingOS/.github](https://github.com/QuantTradingOS/.github) repository and push.* 
